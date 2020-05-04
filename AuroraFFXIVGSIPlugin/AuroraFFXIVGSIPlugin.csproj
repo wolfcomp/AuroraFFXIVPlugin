@@ -94,9 +94,7 @@
     </Compile>
     <Compile Include="FFXIV\FFXIVApplication.cs" />
     <Compile Include="FFXIV\FFXIVProfile.cs" />
-    <Compile Include="FFXIV\GSI\FFXIVActionNode.cs" />
-    <Compile Include="FFXIV\GSI\FFXIVKeyBindNode.cs" />
-    <Compile Include="FFXIV\GSI\FFXIVPlayerNode.cs" />
+    <Compile Include="KeyBindStructure.cs" />
     <Compile Include="FFXIV\GSI\GameState_FFXIV.cs" />
     <Compile Include="FFXIV\Layers\Control_FFXIVActionLayerHandler.xaml.cs">
       <DependentUpon>Control_FFXIVActionLayerHandler.xaml</DependentUpon>

@@ -6,7 +6,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Aurora;
-using AuroraFFXIVGSIPluginTest;
+using Aurora.Devices;
+using AuroraFFXIVGSIPlugin.FFXIV.GSI;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Sharlayan;
@@ -18,7 +19,7 @@ namespace AuroraFFXIVGSIPlugin
 {
     public class FFXIVMain
     {
-        public JObject GSI = new JObject { { "actions", new byte[0] }, { "player", new JObject() }, { "keybinds", new JArray() } };
+        public GameState_FFXIV GameState = new GameState_FFXIV();
 
         public event Action MemoryRead;
 
@@ -54,17 +55,13 @@ namespace AuroraFFXIVGSIPlugin
                         var actions = Reader.GetActions();
                         if (actions.ActionContainers.Any())
                         {
-                            GSI["actions"] = actions.ActionContainers.SelectMany(t => t.ActionItems.SelectMany(f => new ActionStructure(f).ToBytes())).ToJArray().ToString(Formatting.None);
-                        }
-                        else
-                        {
-                            if (GSI["actions"].HasValues)
-                                GSI["actions"] = new byte[0];
+                            GameState.Actions.Clear();
+                            GameState.Actions.AddRange(actions.ActionContainers.SelectMany(t => t.ActionItems.Select(f => new ActionStructure(f))));
                         }
                         var player = Reader.GetCurrentPlayer();
                         var actors = Reader.GetActors();
                         var playerActor = actors.CurrentPCs.FirstOrDefault(t => t.Value.Name == player.CurrentPlayer.Name).Value;
-                        GSI["player"] = JObject.FromObject(new PlayerStruct(player, playerActor));
+                        var playerObj = new PlayerStruct(player, playerActor);
                         if (!Scanner.Instance.IsScanning && playerActor != null)
                         {
                             var characterAddressMap = MemoryHandler.Instance.GetByteArray(Scanner.Instance.Locations[Signatures.CharacterMapKey], 8 * 480);
@@ -80,11 +77,11 @@ namespace AuroraFFXIVGSIPlugin
 
                                 uniqueAddresses[characterAddress] = characterAddress;
                             }
-                            foreach (KeyValuePair<IntPtr, IntPtr> kvp in uniqueAddresses)
+                            foreach (var (key, address) in uniqueAddresses)
                             {
                                 try
                                 {
-                                    var characterAddress = new IntPtr(kvp.Value.ToInt64());
+                                    var characterAddress = new IntPtr(address.ToInt64());
                                     byte[] source = MemoryHandler.Instance.GetByteArray(characterAddress, 9200);
                                     var ID = TryBitConverter.TryToUInt32(source, 116);
                                     var Type = (Actor.Type) source[140];
@@ -94,7 +91,7 @@ namespace AuroraFFXIVGSIPlugin
                                         case Actor.Type.PC:
                                             if (playerActor.ID == ID)
                                             {
-                                                (GSI["player"] as JObject).Add("Status", source[6362]);
+                                                playerObj = new PlayerStruct(playerObj, source[6362]);
                                             }
                                             break;
                                         default:
@@ -109,6 +106,7 @@ namespace AuroraFFXIVGSIPlugin
                                 }
                             }
                         }
+                        GameState.Player = playerObj;
                         //TODO add in party when there is a way to sort based on the ingame sort
                         //var party = Reader.GetPartyMembers();
                         //var partyActors = party.PartyMembers.Select(t => actors.CurrentPCs[t.Key]).ToList();
@@ -137,33 +135,21 @@ namespace AuroraFFXIVGSIPlugin
             read = false;
         }
 
-        public async Task MainAsync() { }
-
         private void WatcherOnChanged(object sender, FileSystemEventArgs e)
         {
             if (e.FullPath.Contains("FFXIV_CHR") && !e.FullPath.Contains("\\log\\"))
                 ReadFiles(new FileInfo(e.FullPath).DirectoryName);
         }
 
+        #region Read KEYBIND.dat
         private void ReadFiles(string folder)
         {
             if (!folder.Contains("FFXIV_CHR")) throw new ArgumentException("Folder must be a FFXIV_CHR folder", nameof(folder));
             BinaryReader reader = new BinaryReader(File.Open(Path.Combine(folder, "KEYBIND.dat"), FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
             var header = GetHeader(reader);
-            var arr = new JArray();
+            GameState.KeyBinds.Clear();
             while (reader.BaseStream.Position < header["data_size"].ToObject<long>())
-                arr.Add(ReadKeybind(reader));
-            GSI["keybinds"] = arr.SelectMany(obj =>
-            {
-                var l = new List<byte>();
-                var str = Encoding.UTF8.GetBytes(obj["command"].ToString());
-                l.AddRange(BitConverter.GetBytes(str.Length));
-                l.AddRange(str);
-                l.Add(obj["key1"]["key"].ToObject<byte>());
-                l.Add(obj["key1"]["keyraw"].ToObject<byte>());
-                l.Add((byte) obj["key1"]["keymod"].ToObject<FFXIVModifierKey>());
-                return l.ToArray();
-            }).ToJArray().ToString(Formatting.None);
+                ReadKeybind(reader);
         }
 
         private JObject GetHeader(BinaryReader reader)
@@ -177,7 +163,6 @@ namespace AuroraFFXIVGSIPlugin
 
         private long CheckHeader(BinaryReader reader)
         {
-            reader.BaseStream.Seek(0, SeekOrigin.End);
             var fs = reader.BaseStream.Length;
             reader.BaseStream.Seek(4, SeekOrigin.Begin);
             var hfs = reader.ReadUInt32();
@@ -185,27 +170,16 @@ namespace AuroraFFXIVGSIPlugin
             return fs;
         }
 
-        private JObject ReadKeybind(BinaryReader reader)
+        private void ReadKeybind(BinaryReader reader)
         {
-            var obj = new JObject();
-            obj["command"] = ReadSection(reader, 0x73)["data"].ToString();
-            obj["keystr"] = ReadSection(reader, 0x73);
-            var keys = obj["keystr"]["data"].ToString().Split(new [] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(s =>
+            var command = ReadSection(reader, 0x73)["data"].ToString();
+            var keys = ReadSection(reader, 0x73)["data"].ToString().Split(new [] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(s =>
             {
-                var obj = new JObject();
-                var sp = s.Split(new [] { '.' }, StringSplitOptions.RemoveEmptyEntries);
-                var b = Convert.ToByte(sp[0], 16);
-                obj["key"] = (byte) (ByteToKey(b) & 0xFF);
-                obj["keyraw"] = b;
-                obj["keymod"] = ((FFXIVModifierKey) Convert.ToByte(sp[1], 16)).ToString();
+                var sp = s.Split(new [] { '.' }, StringSplitOptions.RemoveEmptyEntries).Select(t => Convert.ToByte(t, 16)).ToArray();
+                var obj = new KeyBindStructure(ByteToKey(sp[0]), sp[0], (FFXIVModifierKey) sp[1]);
                 return obj;
             }).ToArray();
-            for (var i = 0; i < keys.Length; i++)
-            {
-                obj["key" + (i + 1)] = keys[i];
-            }
-            obj.Remove("keystr");
-            return obj;
+            GameState.KeyBinds.Add(new KeyBindStructure(command, keys));
         }
 
         private JObject ReadSection(BinaryReader reader, byte xor)
@@ -220,6 +194,7 @@ namespace AuroraFFXIVGSIPlugin
         }
 
         private char[] Xor(char[] input, byte xor) => input.Select(c => (char) (c ^ xor)).ToArray();
+        #endregion
 
         private void SetProcess()
         {
@@ -242,101 +217,101 @@ namespace AuroraFFXIVGSIPlugin
             }
         }
 
-        private short ByteToKey(byte i) => i switch
+        private DeviceKeys ByteToKey(byte i) => i switch
         {
-            0 => -1,
-            8 => 30,
-            9 => 38,
-            13 => 72,
-            19 => 16,
-            20 => 59,
-            27 => 1,
-            32 => 97,
-            33 => 33,
-            34 => 54,
-            35 => 53,
-            36 => 32,
-            37 => 102,
-            38 => 89,
-            39 => 104,
-            40 => 103,
-            44 => 14,
-            45 => 31,
-            46 => 52,
-            48 => 27,
-            49 => 18,
-            50 => 19,
-            51 => 20,
-            52 => 21,
-            53 => 22,
-            54 => 23,
-            55 => 24,
-            56 => 25,
-            57 => 26,
-            58 => 69,
-            65 => 60,
-            66 => 82,
-            67 => 80,
-            68 => 62,
-            69 => 41,
-            70 => 63,
-            71 => 64,
-            72 => 65,
-            73 => 46,
-            74 => 66,
-            75 => 67,
-            76 => 68,
-            77 => 84,
-            78 => 83,
-            79 => 47,
-            80 => 48,
-            81 => 39,
-            82 => 42,
-            83 => 61,
-            84 => 43,
-            85 => 45,
-            86 => 81,
-            87 => 40,
-            88 => 79,
-            89 => 44,
-            90 => 78,
-            96 => 105,
-            97 => 90,
-            98 => 91,
-            99 => 92,
-            100 => 73,
-            101 => 74,
-            102 => 75,
-            103 => 55,
-            104 => 56,
-            105 => 57,
-            106 => 36,
-            107 => 58,
-            109 => 37,
-            110 => 106,
-            111 => 35,
-            112 => 2,
-            113 => 3,
-            114 => 4,
-            115 => 5,
-            116 => 6,
-            117 => 7,
-            118 => 8,
-            119 => 9,
-            120 => 10,
-            121 => 11,
-            122 => 12,
-            123 => 13,
-            130 => 29,
-            131 => 85,
-            132 => 28,
-            133 => 86,
-            137 => 49,
-            138 => 51,
-            139 => 50,
-            144 => 34,
-            145 => 15,
-            _ => i
+            0 => DeviceKeys.NONE,
+            8 => DeviceKeys.BACKSPACE,
+            9 => DeviceKeys.TAB,
+            13 => DeviceKeys.ENTER,
+            19 => DeviceKeys.PAUSE_BREAK,
+            20 => DeviceKeys.CAPS_LOCK,
+            27 => DeviceKeys.ESC,
+            32 => DeviceKeys.SPACE,
+            33 => DeviceKeys.PAGE_UP,
+            34 => DeviceKeys.PAGE_DOWN,
+            35 => DeviceKeys.END,
+            36 => DeviceKeys.HOME,
+            37 => DeviceKeys.ARROW_LEFT,
+            38 => DeviceKeys.ARROW_UP,
+            39 => DeviceKeys.ARROW_RIGHT,
+            40 => DeviceKeys.ARROW_DOWN,
+            44 => DeviceKeys.PRINT_SCREEN,
+            45 => DeviceKeys.INSERT,
+            46 => DeviceKeys.DELETE,
+            48 => DeviceKeys.ZERO,
+            49 => DeviceKeys.ONE,
+            50 => DeviceKeys.TWO,
+            51 => DeviceKeys.THREE,
+            52 => DeviceKeys.FOUR,
+            53 => DeviceKeys.FIVE,
+            54 => DeviceKeys.SIX,
+            55 => DeviceKeys.SEVEN,
+            56 => DeviceKeys.EIGHT,
+            57 => DeviceKeys.NINE,
+            58 => DeviceKeys.SEMICOLON,
+            65 => DeviceKeys.A,
+            66 => DeviceKeys.B,
+            67 => DeviceKeys.C,
+            68 => DeviceKeys.D,
+            69 => DeviceKeys.E,
+            70 => DeviceKeys.F,
+            71 => DeviceKeys.G,
+            72 => DeviceKeys.H,
+            73 => DeviceKeys.I,
+            74 => DeviceKeys.J,
+            75 => DeviceKeys.K,
+            76 => DeviceKeys.L,
+            77 => DeviceKeys.M,
+            78 => DeviceKeys.N,
+            79 => DeviceKeys.O,
+            80 => DeviceKeys.P,
+            81 => DeviceKeys.Q,
+            82 => DeviceKeys.R,
+            83 => DeviceKeys.S,
+            84 => DeviceKeys.T,
+            85 => DeviceKeys.U,
+            86 => DeviceKeys.V,
+            87 => DeviceKeys.W,
+            88 => DeviceKeys.X,
+            89 => DeviceKeys.Y,
+            90 => DeviceKeys.Z,
+            96 => DeviceKeys.NUM_ZERO,
+            97 => DeviceKeys.NUM_ONE,
+            98 => DeviceKeys.NUM_TWO,
+            99 => DeviceKeys.NUM_THREE,
+            100 => DeviceKeys.NUM_FOUR,
+            101 => DeviceKeys.NUM_FIVE,
+            102 => DeviceKeys.NUM_SIX,
+            103 => DeviceKeys.NUM_SEVEN,
+            104 => DeviceKeys.NUM_EIGHT,
+            105 => DeviceKeys.NUM_NINE,
+            106 => DeviceKeys.NUM_ASTERISK,
+            107 => DeviceKeys.NUM_PLUS,
+            109 => DeviceKeys.NUM_MINUS,
+            110 => DeviceKeys.NUM_PERIOD,
+            111 => DeviceKeys.NUM_SLASH,
+            112 => DeviceKeys.F1,
+            113 => DeviceKeys.F2,
+            114 => DeviceKeys.F3,
+            115 => DeviceKeys.F4,
+            116 => DeviceKeys.F5,
+            117 => DeviceKeys.F6,
+            118 => DeviceKeys.F7,
+            119 => DeviceKeys.F8,
+            120 => DeviceKeys.F9,
+            121 => DeviceKeys.F10,
+            122 => DeviceKeys.F11,
+            123 => DeviceKeys.F12,
+            130 => DeviceKeys.EQUALS,
+            131 => DeviceKeys.COMMA,
+            132 => DeviceKeys.MINUS,
+            133 => DeviceKeys.PERIOD,
+            137 => DeviceKeys.OPEN_BRACKET,
+            138 => DeviceKeys.BACKSLASH,
+            139 => DeviceKeys.CLOSE_BRACKET,
+            144 => DeviceKeys.NUM_LOCK,
+            145 => DeviceKeys.SCROLL_LOCK,
+            _ => DeviceKeys.NONE
         };
     }
 

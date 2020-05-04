@@ -155,7 +155,7 @@ namespace AuroraFFXIVGSIPlugin
                     {
                         Properties = new LayerHandlerProperties
                         {
-                            _PrimaryColor = Color.DarkMagenta,
+                            _PrimaryColor = Color.FromArgb(105, 105, 105),
                             _Sequence = new KeySequence(new []
                             {
                                 DeviceKeys.R, DeviceKeys.T, DeviceKeys.Y, DeviceKeys.U, DeviceKeys.I, DeviceKeys.O,

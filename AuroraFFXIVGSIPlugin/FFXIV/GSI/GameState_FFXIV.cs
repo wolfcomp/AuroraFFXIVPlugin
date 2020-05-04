@@ -10,68 +10,54 @@ namespace AuroraFFXIVGSIPlugin.FFXIV.GSI
 {
     public class GameState_FFXIV : GameState<GameState_FFXIV>
     {
-        private FFXIVActionNode _Actions { get; } = new FFXIVActionNode();
+        public FFXIVActionNode Actions { get; } = new FFXIVActionNode();
 
-        public FFXIVActionNode Actions
-        {
-            get
-            {
-                if (_ParsedData.ContainsKey("actions"))
-                {
-                    _Actions.Clear();
-                    var actionsList = JArray.Parse(_ParsedData["actions"].ToString()).Select(t => t.ToObject<byte>()).ToArray();
-                    var offset = 0;
-                    while (actionsList.Length > offset)
-                    {
-                        _Actions.Add(new FFXIVAction(actionsList, offset, out offset));
-                    }
-                }
-                return _Actions;
-            }
-        }
+        public PlayerStruct Player { get; set; } = new PlayerStruct();
 
-        private FFXIVPlayerNode _Player { get; set; } = new FFXIVPlayerNode();
-
-        public FFXIVPlayerNode Player
-        {
-            get
-            {
-                if(_ParsedData.ContainsKey("player")) _Player = NodeFor<FFXIVPlayerNode>("player");
-                return _Player;
-            }
-        }
-
-        public FFXIVKeyBindNode _KeyBinds { get; } = new FFXIVKeyBindNode();
-
-        public FFXIVKeyBindNode KeyBinds
-        {
-            get
-            {
-                if (_ParsedData.ContainsKey("keybinds"))
-                {
-                    _KeyBinds.Clear();
-                    var actionsList = JArray.Parse(_ParsedData["keybinds"].ToString()).Select(t => t.ToObject<byte>()).ToArray();
-                    var offset = 0;
-                    while (actionsList.Length > offset)
-                    {
-                        _KeyBinds.Add(new FFXIVKeyBind(actionsList, offset, out offset));
-                    }
-                }
-                return _KeyBinds;
-            }
-        }
-
-        public GameState_FFXIV() : base() { }
-
-        public GameState_FFXIV(string json) : base(json) { }
-
+        public FFXIVKeyBindNode KeyBinds { get; } = new FFXIVKeyBindNode();
+        
         public override bool Equals(object obj)
         {
             if (obj is GameState_FFXIV ffxiv)
             {
-                ffxiv.Actions.Equals(Actions);
+                return ffxiv.Actions.Equals(Actions) && ffxiv.KeyBinds.Equals(KeyBinds) && ffxiv.Player.Equals(Player);
             }
             return base.Equals(obj);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                var hashCode = (Actions != null ? Actions.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ Player.GetHashCode();
+                hashCode = (hashCode * 397) ^ (KeyBinds != null ? KeyBinds.GetHashCode() : 0);
+                return hashCode;
+            }
+        }
+    }
+
+    public class FFXIVKeyBindNode : List<KeyBindStructure>
+    {
+        public override bool Equals(object obj)
+        {
+            if (obj is FFXIVKeyBindNode keyBindNode)
+            {
+                return keyBindNode.All(t => this.Any(f => f.GetHashCode() == t.GetHashCode()));
+            }
+            return false;
+        }
+    }
+
+    public class FFXIVActionNode : List<ActionStructure>
+    {
+        public override bool Equals(object obj)
+        {
+            if (obj is FFXIVActionNode actionNode)
+            {
+                return actionNode.All(t => this.Any(f => f.GetHashCode() == t.GetHashCode()));
+            }
+            return false;
         }
     }
 }

@@ -33,6 +33,9 @@ namespace AuroraFFXIVGSIPlugin.FFXIV.Layers
 
     public class FFXIVKeyBindLayerHandler : LayerHandler<KeyBindLayerHandlerProperties>
     {
+        private EffectLayer prev = new EffectLayer();
+        private List<KeyBindStructure> prevKey = new List<KeyBindStructure>();
+
         public FFXIVKeyBindLayerHandler() : base()
         {
             _ID = "FFXIVKeyBindLayer";
@@ -49,43 +52,53 @@ namespace AuroraFFXIVGSIPlugin.FFXIV.Layers
         {
             var layer = new EffectLayer("FFXIV - Action Layer");
             layer.Fill(Color.Transparent);
-            if (gamestate is GameState_FFXIV ffxiv && ffxiv.KeyBinds.Any())
+            if (gamestate is GameState_FFXIV ffxiv)
             {
-                List<DeviceKeys> modifs = new List<DeviceKeys>();
-                var recordedKeys = Global.InputEvents;
-                var modif = new List<DeviceKeys>();
-                if (recordedKeys.Alt)
+                var keybinds = ffxiv.KeyBinds.ToList();
+                if (keybinds.Any() && !prevKey.All(t => prevKey.Contains(t)))
                 {
-                    modif.AddRange(new [] { DeviceKeys.LEFT_ALT, DeviceKeys.LEFT_SHIFT });
-                }
-                if (recordedKeys.Control)
-                {
-                    modif.AddRange(new [] { DeviceKeys.LEFT_CONTROL, DeviceKeys.RIGHT_CONTROL });
-                }
-                if (recordedKeys.Shift)
-                {
-                    modif.AddRange(new [] { DeviceKeys.LEFT_SHIFT, DeviceKeys.RIGHT_SHIFT });
-                }
-                if (!recordedKeys.Shift && !recordedKeys.Control && !recordedKeys.Alt)
-                {
-                    modif.AddRange(new [] { DeviceKeys.NONE });
-                }
-                foreach (var keyBind in ffxiv.KeyBinds.Where(t => t.Key != DeviceKeys.NONE && t.KeyMod.All(f => modif.Contains(f)) && (!modif.Any() || modif.All(f => t.KeyMod.Contains(f))) && (!Properties.Ignore || !t.Command.Contains("PERFORMANCE_MODE"))))
-                {
-                    layer.Set(keyBind.Key, Properties.PrimaryColor);
-                    if (keyBind.KeyMod[0] != DeviceKeys.NONE)
+                    var modifs = new List<DeviceKeys>();
+                    var recordedKeys = Global.InputEvents;
+                    var modif = new List<DeviceKeys>();
+                    if (recordedKeys.Alt)
                     {
-                        modifs.AddRange(keyBind.KeyMod);
+                        modif.AddRange(new [] { DeviceKeys.LEFT_ALT, DeviceKeys.LEFT_SHIFT });
                     }
+                    if (recordedKeys.Control)
+                    {
+                        modif.AddRange(new [] { DeviceKeys.LEFT_CONTROL, DeviceKeys.RIGHT_CONTROL });
+                    }
+                    if (recordedKeys.Shift)
+                    {
+                        modif.AddRange(new [] { DeviceKeys.LEFT_SHIFT, DeviceKeys.RIGHT_SHIFT });
+                    }
+                    if (!recordedKeys.Shift && !recordedKeys.Control && !recordedKeys.Alt)
+                    {
+                        modif.AddRange(new [] { DeviceKeys.NONE });
+                    }
+                    foreach (var keyBind in keybinds.Where(t => t.Key != DeviceKeys.NONE && t.KeyMod.All(f => modif.Contains(f)) && (!modif.Any() || modif.All(f => t.KeyMod.Contains(f))) && (!Properties.Ignore || !t.Command.Contains("PERFORMANCE_MODE"))))
+                    {
+                        layer.Set(keyBind.Key, Properties.PrimaryColor);
+                        if (keyBind.KeyMod[0] != DeviceKeys.NONE)
+                        {
+                            modifs.AddRange(keyBind.KeyMod);
+                        }
+                    }
+                    layer.Set(modifs.ToArray(), Properties.PrimaryColor);
+                    prevKey = keybinds;
                 }
-                layer.Set(modifs.ToArray(), Properties.PrimaryColor);
+                else
+                    layer = prev;
             }
+            else
+                layer = prev;
+            prev = layer;
             return layer;
         }
 
         public override void SetApplication(Application profile)
         {
-            (Control as Control_FFXIVKeyBindLayerHandler).SetProfile(profile);
+            (Control as Control_FFXIVKeyBindLayerHandler)?.SetProfile(profile);
             base.SetApplication(profile);
         }
     }

@@ -59,6 +59,9 @@ namespace AuroraFFXIVGSIPlugin.FFXIV.Layers
 
     public class FFXIVActionLayerHandler : LayerHandler<FFXIVActionLayerHandlerProperties>
     {
+        private EffectLayer prev = new EffectLayer();
+        private List<ActionStructure> prevActions = new List<ActionStructure>();
+
         public FFXIVActionLayerHandler() : base()
         {
             _ID = "FFXIVActionLayer";
@@ -75,55 +78,72 @@ namespace AuroraFFXIVGSIPlugin.FFXIV.Layers
         {
             var layer = new EffectLayer("FFXIV - Action Layer");
             layer.Fill(Color.Transparent);
-            if (gamestate is GameState_FFXIV ffxiv && ffxiv.Actions.Any())
+            if (gamestate is GameState_FFXIV ffxiv)
             {
-                layer.Set(ffxiv.Actions.Where(t => t.Key != DeviceKeys.NONE).Select(t => t.Key).ToArray(), Properties.NotAvailable);
-                var recordedKeys = Global.InputEvents;
-                var modif = new List<Func<FFXIVAction, bool>>();
-                if (recordedKeys.Alt)
+                var actions = ffxiv.Actions.ToList();
+                if (actions.Any() && !prevActions.All(t => actions.Contains(t)))
                 {
-                    modif.Add(t => t.IsAlt);
+                    layer.Set(actions.Where(t => t.Key != DeviceKeys.NONE).Select(t => t.Key).ToArray(), Properties.NotAvailable);
+                    var modif = getModifs();
+                    foreach (var ffxivAction in actions.Where(t => modif.All(f => f(t)) && t.Key != DeviceKeys.NONE))
+                    {
+                        layer.Set(ffxivAction.Key, ColorUtils.MultiplyColorByScalar(Properties.PrimaryColor, ffxivAction.GetCoolDownPrecent(ffxiv)));
+                        if (ffxivAction.IsProcOrCombo)
+                            layer.Set(ffxivAction.Key, ColorUtils.MultiplyColorByScalar(Properties.Combo, ffxivAction.GetCoolDownPrecent(ffxiv)));
+                        if (!ffxivAction.InRange)
+                            layer.Set(ffxivAction.Key, ColorUtils.MultiplyColorByScalar(Properties.OutOfRange, ffxivAction.GetCoolDownPrecent(ffxiv)));
+                        if (!ffxivAction.IsAvailable)
+                            layer.Set(ffxivAction.Key, Properties.NotAvailable);
+                    }
+                    setModifKeys(layer, actions.Where(t => t.IsCtrl).ToArray(), new [] { DeviceKeys.LEFT_CONTROL, DeviceKeys.RIGHT_CONTROL }, ffxiv);
+                    setModifKeys(layer, actions.Where(t => t.IsShift).ToArray(), new [] { DeviceKeys.LEFT_SHIFT, DeviceKeys.RIGHT_SHIFT }, ffxiv);
+                    setModifKeys(layer, actions.Where(t => t.IsAlt).ToArray(), new [] { DeviceKeys.LEFT_ALT, DeviceKeys.RIGHT_ALT }, ffxiv);
+                    prevActions = actions;
                 }
                 else
-                {
-                    modif.Add(t => !t.IsAlt);
-                }
-                if (recordedKeys.Control)
-                {
-                    modif.Add(t => t.IsCtrl);
-                }
-                else
-                {
-                    modif.Add(t => !t.IsCtrl);
-                }
-                if (recordedKeys.Shift)
-                {
-                    modif.Add(t => t.IsShift);
-                }
-                else 
-                {
-                    modif.Add(t => !t.IsShift);
-                }
-                foreach (var ffxivAction in ffxiv.Actions.Where(t => modif.All(f => f(t)) && t.Key != DeviceKeys.NONE))
-                {
-                    layer.Set(ffxivAction.Key, ColorUtils.MultiplyColorByScalar(Properties.PrimaryColor, ffxivAction.CoolDownPercent == 0 ? 100 : ffxivAction.CoolDownPercent / 100D));
-                    if (ffxivAction.IsProcOrCombo)
-                        layer.Set(ffxivAction.Key, ColorUtils.MultiplyColorByScalar(Properties.Combo, ffxivAction.CoolDownPercent == 0 ? 100 : ffxivAction.CoolDownPercent / 100D));
-                    if (!ffxivAction.InRange)
-                        layer.Set(ffxivAction.Key, ColorUtils.MultiplyColorByScalar(Properties.OutOfRange, ffxivAction.CoolDownPercent == 0 ? 100 : ffxivAction.CoolDownPercent / 100D));
-                    if (!ffxivAction.IsAvailable)
-                        layer.Set(ffxivAction.Key, Properties.NotAvailable);
-                }
-                setModifKeys(layer, ffxiv.Actions.Where(t => t.IsCtrl).ToArray(), new [] { DeviceKeys.LEFT_CONTROL, DeviceKeys.RIGHT_CONTROL });
-                setModifKeys(layer, ffxiv.Actions.Where(t => t.IsShift).ToArray(), new [] { DeviceKeys.LEFT_SHIFT, DeviceKeys.RIGHT_SHIFT });
-                setModifKeys(layer, ffxiv.Actions.Where(t => t.IsAlt).ToArray(), new [] { DeviceKeys.LEFT_ALT, DeviceKeys.RIGHT_ALT });
+                    layer = prev;
             }
+            else
+                layer = prev;
+            prev = layer;
             return layer;
         }
 
-        private void setModifKeys(EffectLayer layer, FFXIVAction[] actions, DeviceKeys[] deviceKeys)
+        private List<Func<ActionStructure, bool>> getModifs()
         {
-            var cooldown = actions.Select(t => t.CoolDownPercent).Max();
+            var recordedKeys = Global.InputEvents;
+            var modif = new List<Func<ActionStructure, bool>>();
+            if (recordedKeys.Alt)
+            {
+                modif.Add(t => t.IsAlt);
+            }
+            else
+            {
+                modif.Add(t => !t.IsAlt);
+            }
+            if (recordedKeys.Control)
+            {
+                modif.Add(t => t.IsCtrl);
+            }
+            else
+            {
+                modif.Add(t => !t.IsCtrl);
+            }
+            if (recordedKeys.Shift)
+            {
+                modif.Add(t => t.IsShift);
+            }
+            else
+            {
+                modif.Add(t => !t.IsShift);
+            }
+            return modif;
+        }
+
+        private void setModifKeys(EffectLayer layer, ActionStructure[] actions, DeviceKeys[] deviceKeys, GameState_FFXIV ffxiv)
+        {
+            if (!actions.Any()) return;
+            var cooldown = actions.Select(t => t.GetCoolDownPrecent(ffxiv)).Max();
             var scalar = cooldown == 0 ? 100 : cooldown / 100D;
             if (actions.Any()) layer.Set(deviceKeys, ColorUtils.MultiplyColorByScalar(Properties.PrimaryColor, scalar));
             if (actions.Any(t => t.IsProcOrCombo)) layer.Set(deviceKeys, ColorUtils.MultiplyColorByScalar(Properties.Combo, scalar));

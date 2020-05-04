@@ -11,7 +11,7 @@ namespace AuroraFFXIVGSIPluginTest
     {
         static void Main(string[] args)
         {
-            new FFXIVMain().MainAsync().GetAwaiter().GetResult();
+            new FFXIVMain();
         }
     }
 }

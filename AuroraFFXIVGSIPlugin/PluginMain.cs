@@ -16,7 +16,7 @@ namespace AuroraFFXIVGSIPlugin
 
         public string Author { get; private set; } = "WildWolf";
 
-        public Version Version { get; private set; } = new Version(0, 1);
+        public Version Version { get; private set; } = new Version(0, 2);
 
         private IPluginHost pluginHost;
 

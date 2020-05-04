@@ -50,7 +50,7 @@ namespace AuroraFFXIVGSIPlugin
 
         private void FfxivMain_MemoryRead()
         {
-            SetGameState(new GameState_FFXIV(ffxivMain.GSI.ToString(Formatting.None)));
+            SetGameState(ffxivMain.GameState);
         }
 
         public override void OnStart()
