@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Aurora.Profiles;
 using Aurora.Settings;
 
 namespace AuroraFFXIVGSIPlugin
@@ -25,14 +26,19 @@ namespace AuroraFFXIVGSIPlugin
             set { pluginHost = value; }
         }
 
-        private Main main;
+        private FFXIVMain ffxiv;
 
         public PluginMain()
         {
-            main = new Main();
-            main.MainAsync(new string[] { });
+            ffxiv = new FFXIVMain();
         }
 
-        public void ProcessManager(object manager) { }
+        public void ProcessManager(object manager)
+        {
+            if (manager is LightingStateManager stateManager)
+            {
+                stateManager.RegisterEvent(new FFXIVApplication(ffxiv));
+            }
+        }
     }
 }

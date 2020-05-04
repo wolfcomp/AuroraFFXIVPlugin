@@ -1,0 +1,15 @@
+﻿<UserControl x:Class="AuroraFFXIVGSIPlugin.FFXIV.Layers.Control_FFXIVKeyBindLayerHandler"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:AuroraFFXIVGSIPlugin.FFXIV.Layers"
+             xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+             mc:Ignorable="d" Loaded="UserControl_Loaded">
+    <Grid>
+        <xctk:ColorPicker x:Name="ColorPicker_Primary" Margin="110,0,0,0" Height="20" VerticalAlignment="Top" HorizontalAlignment="Left" Width="150" UsingAlphaChannel="True" ColorMode="ColorCanvas" SelectedColorChanged="ColorPicker_Primary_SelectedColorChanged" />
+        <Label HorizontalAlignment="Left" Padding="0" Content="Primary Color:" VerticalAlignment="Top" Margin="0,2,0,0"/>
+        <CheckBox x:Name="PerformanceCheckbox" Margin="160,22,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" IsChecked="True" Checked="PerformanceCheckbox_Checked"/>
+        <Label HorizontalAlignment="Left" Padding="0" Content="Ignore Performance Keybinds:" VerticalAlignment="Top" Margin="0,20,0,0" />
+    </Grid>
+</UserControl>

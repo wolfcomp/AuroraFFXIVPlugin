@@ -3,27 +3,32 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Net.Http;
-using System.Runtime.Remoting.Contexts;
 using System.Text;
 using System.Threading.Tasks;
+using Aurora;
 using AuroraFFXIVGSIPluginTest;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Sharlayan;
 using Sharlayan.Core.Enums;
 using Sharlayan.Models;
-using Sharlayan.Models.ReadResults;
 using Action = System.Action;
 
 namespace AuroraFFXIVGSIPlugin
 {
-    public class Main
+    public class FFXIVMain
     {
-        private JObject gsiJObject = new JObject { { "actions", new byte[0] }, { "player", new JObject() }, { "keybinds", new JArray() }, { "provider", new JObject { { "appid", "39210" }, { "name", "ffxiv_dx11.exe" } } } };
-        private JObject prevGsiJObject = new JObject { { "actions", new byte[0] }, { "player", new JObject() }, { "keybinds", new JArray() }, { "provider", new JObject { { "appid", "39210" }, { "name", "ffxiv_dx11.exe" } } } };
+        public JObject GSI = new JObject { { "actions", new byte[0] }, { "player", new JObject() }, { "keybinds", new JArray() } };
 
-        public event Action<string> Error; 
+        public event Action MemoryRead;
+
+        private bool read = false;
+
+        public FFXIVMain()
+        {
+            FileWatcher();
+            ReaderTask();
+        }
 
         private void FileWatcher()
         {
@@ -38,92 +43,105 @@ namespace AuroraFFXIVGSIPlugin
             watcher.EnableRaisingEvents = true;
         }
 
-        public async Task MainAsync(string[] args)
+        private async Task ReaderTask()
         {
-            FileWatcher();
-            SetProcess();
             while (true)
             {
-                try
+                if (read)
                 {
-                    var actions = Reader.GetActions();
-                    if (actions.ActionContainers.Any())
+                    try
                     {
-                        gsiJObject["actions"] = actions.ActionContainers.SelectMany(t => t.ActionItems.SelectMany(f => new ActionStructure(f).ToBytes())).ToJArray().ToString(Formatting.None);
-                    }
-                    else
-                    {
-                        if (gsiJObject["actions"].HasValues)
-                            gsiJObject["actions"] = new byte[0];
-                    }
-                    var player = Reader.GetCurrentPlayer();
-                    var actors = Reader.GetActors();
-                    var playerActor = actors.CurrentPCs.FirstOrDefault(t => t.Value.Name == player.CurrentPlayer.Name).Value;
-                    gsiJObject["player"] = JObject.FromObject(new PlayerStruct(player, playerActor));
-                    if (!Scanner.Instance.IsScanning && playerActor != null)
-                    {
-                        var characterAddressMap = MemoryHandler.Instance.GetByteArray(Scanner.Instance.Locations[Signatures.CharacterMapKey], 8 * 480);
-                        var uniqueAddresses = new Dictionary<IntPtr, IntPtr>();
-                        for (var i = 0; i < 480; i++)
+                        var actions = Reader.GetActions();
+                        if (actions.ActionContainers.Any())
                         {
-                            var characterAddress = new IntPtr(TryBitConverter.TryToInt64(characterAddressMap, i * 8));
-
-                            if (characterAddress == IntPtr.Zero)
-                            {
-                                continue;
-                            }
-
-                            uniqueAddresses[characterAddress] = characterAddress;
+                            GSI["actions"] = actions.ActionContainers.SelectMany(t => t.ActionItems.SelectMany(f => new ActionStructure(f).ToBytes())).ToJArray().ToString(Formatting.None);
                         }
-                        foreach (KeyValuePair<IntPtr, IntPtr> kvp in uniqueAddresses)
+                        else
                         {
-                            try
+                            if (GSI["actions"].HasValues)
+                                GSI["actions"] = new byte[0];
+                        }
+                        var player = Reader.GetCurrentPlayer();
+                        var actors = Reader.GetActors();
+                        var playerActor = actors.CurrentPCs.FirstOrDefault(t => t.Value.Name == player.CurrentPlayer.Name).Value;
+                        GSI["player"] = JObject.FromObject(new PlayerStruct(player, playerActor));
+                        if (!Scanner.Instance.IsScanning && playerActor != null)
+                        {
+                            var characterAddressMap = MemoryHandler.Instance.GetByteArray(Scanner.Instance.Locations[Signatures.CharacterMapKey], 8 * 480);
+                            var uniqueAddresses = new Dictionary<IntPtr, IntPtr>();
+                            for (var i = 0; i < 480; i++)
                             {
-                                var characterAddress = new IntPtr(kvp.Value.ToInt64());
-                                byte[] source = MemoryHandler.Instance.GetByteArray(characterAddress, 9200);
-                                var ID = TryBitConverter.TryToUInt32(source, 116);
-                                var Type = (Actor.Type) source[140];
-                                var set = false;
-                                switch (Type)
+                                var characterAddress = new IntPtr(TryBitConverter.TryToInt64(characterAddressMap, i * 8));
+
+                                if (characterAddress == IntPtr.Zero)
                                 {
-                                    case Actor.Type.PC:
-                                        if (playerActor.ID == ID)
-                                        {
-                                            (gsiJObject["player"] as JObject).Add("Status", source[6362]);
-                                        }
-                                        break;
-                                    default:
+                                    continue;
+                                }
+
+                                uniqueAddresses[characterAddress] = characterAddress;
+                            }
+                            foreach (KeyValuePair<IntPtr, IntPtr> kvp in uniqueAddresses)
+                            {
+                                try
+                                {
+                                    var characterAddress = new IntPtr(kvp.Value.ToInt64());
+                                    byte[] source = MemoryHandler.Instance.GetByteArray(characterAddress, 9200);
+                                    var ID = TryBitConverter.TryToUInt32(source, 116);
+                                    var Type = (Actor.Type) source[140];
+                                    var set = false;
+                                    switch (Type)
+                                    {
+                                        case Actor.Type.PC:
+                                            if (playerActor.ID == ID)
+                                            {
+                                                (GSI["player"] as JObject).Add("Status", source[6362]);
+                                            }
+                                            break;
+                                        default:
+                                            break;
+                                    }
+                                    if (set)
                                         break;
                                 }
-                                if (set)
-                                    break;
-                            }
-                            catch (Exception)
-                            {
-                                //
+                                catch (Exception)
+                                {
+                                    //
+                                }
                             }
                         }
+                        //TODO add in party when there is a way to sort based on the ingame sort
+                        //var party = Reader.GetPartyMembers();
+                        //var partyActors = party.PartyMembers.Select(t => actors.CurrentPCs[t.Key]).ToList();
+                        //gsiJObject["party"] = JToken.Parse(JsonConvert.SerializeObject(partyActors, new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }));
+                        MemoryRead?.Invoke();
                     }
-                    //TODO add in party when there is a way to sort based on the ingame sort
-                    //var party = Reader.GetPartyMembers();
-                    //var partyActors = party.PartyMembers.Select(t => actors.CurrentPCs[t.Key]).ToList();
-                    //gsiJObject["party"] = JToken.Parse(JsonConvert.SerializeObject(partyActors, new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }));
-                    if (gsiJObject.ToString(Formatting.None) != prevGsiJObject.ToString(Formatting.None) || true)
+                    catch (Exception e)
                     {
-                        await SendGSI(gsiJObject);
+                        Global.logger.Error(e, "[FFXIVPlugin] Memory reading failed");
                     }
                     await Task.Delay(TimeSpan.FromMilliseconds(5));
                 }
-                catch (Exception e)
-                {
-                    Error?.Invoke(e.ToString());
-                }
+                else
+                    await Task.Delay(TimeSpan.FromSeconds(2));
             }
         }
 
+        public void StartReading()
+        {
+            SetProcess();
+            read = true;
+        }
+
+        public void StopReading()
+        {
+            read = false;
+        }
+
+        public async Task MainAsync() { }
+
         private void WatcherOnChanged(object sender, FileSystemEventArgs e)
         {
-            if(e.FullPath.Contains("FFXIV_CHR") && !e.FullPath.Contains("\\log\\"))
+            if (e.FullPath.Contains("FFXIV_CHR") && !e.FullPath.Contains("\\log\\"))
                 ReadFiles(new FileInfo(e.FullPath).DirectoryName);
         }
 
@@ -135,7 +153,7 @@ namespace AuroraFFXIVGSIPlugin
             var arr = new JArray();
             while (reader.BaseStream.Position < header["data_size"].ToObject<long>())
                 arr.Add(ReadKeybind(reader));
-            gsiJObject["keybinds"] = arr.SelectMany(obj =>
+            GSI["keybinds"] = arr.SelectMany(obj =>
             {
                 var l = new List<byte>();
                 var str = Encoding.UTF8.GetBytes(obj["command"].ToString());
@@ -143,7 +161,7 @@ namespace AuroraFFXIVGSIPlugin
                 l.AddRange(str);
                 l.Add(obj["key1"]["key"].ToObject<byte>());
                 l.Add(obj["key1"]["keyraw"].ToObject<byte>());
-                l.Add((byte)obj["key1"]["keymod"].ToObject<FFXIVModifierKey>());
+                l.Add((byte) obj["key1"]["keymod"].ToObject<FFXIVModifierKey>());
                 return l.ToArray();
             }).ToJArray().ToString(Formatting.None);
         }
@@ -177,13 +195,13 @@ namespace AuroraFFXIVGSIPlugin
                 var obj = new JObject();
                 var sp = s.Split(new [] { '.' }, StringSplitOptions.RemoveEmptyEntries);
                 var b = Convert.ToByte(sp[0], 16);
-                obj["key"] = (byte)(ByteToKey(b) & 0xFF);
+                obj["key"] = (byte) (ByteToKey(b) & 0xFF);
                 obj["keyraw"] = b;
                 obj["keymod"] = ((FFXIVModifierKey) Convert.ToByte(sp[1], 16)).ToString();
                 return obj;
             }).ToArray();
             for (var i = 0; i < keys.Length; i++)
-            { 
+            {
                 obj["key" + (i + 1)] = keys[i];
             }
             obj.Remove("keystr");
@@ -221,23 +239,6 @@ namespace AuroraFFXIVGSIPlugin
                     IsWin64 = true
                 };
                 MemoryHandler.Instance.SetProcess(processModel, gameLanguage, patchVersion, useLocalCache);
-            }
-        }
-
-        private async Task SendGSI(JObject obj)
-        {
-            try
-            {
-                using (HttpClient httpClient = new HttpClient())
-                {
-                    httpClient.BaseAddress = new Uri("http://localhost:9088");
-                    await httpClient.PostAsync("", new StringContent(obj.ToString(Formatting.None), Encoding.UTF8));
-                    prevGsiJObject = gsiJObject;
-                }
-            }
-            catch
-            {
-                //ignore
             }
         }
 

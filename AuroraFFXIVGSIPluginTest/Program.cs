@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using AuroraFFXIVGSIPlugin;
-using SharpDX.RawInput;
 
 namespace AuroraFFXIVGSIPluginTest
 {
@@ -12,7 +11,7 @@ namespace AuroraFFXIVGSIPluginTest
     {
         static void Main(string[] args)
         {
-            new Main().MainAsync(args).GetAwaiter().GetResult();
+            new FFXIVMain().MainAsync().GetAwaiter().GetResult();
         }
     }
 }
