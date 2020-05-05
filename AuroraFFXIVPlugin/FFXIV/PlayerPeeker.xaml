@@ -1,0 +1,68 @@
+﻿<Window x:Class="AuroraFFXIVPlugin.FFXIV.PlayerPeeker"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:local="clr-namespace:AuroraFFXIVPlugin.FFXIV"
+        mc:Ignorable="d" Height="283" Width="392.667" Background="Black" Foreground="White">
+    <Grid>
+        <StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="JobType: " Height="18" />
+                <TextBlock x:Name="JobType" Height="18" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="HPCurrent: " Height="18" />
+                <TextBlock Name="HPCurrent" Height="18" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="HPMax: " Height="18" />
+                <TextBlock Name="HPMax" Height="18" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="MPCurrent: " Height="18" />
+                <TextBlock Name="MPCurrent" Height="18" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="MPMax: " Height="18" />
+                <TextBlock Name="MPMax" Height="18" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="CPCurrent: " Height="18" />
+                <TextBlock Name="CPCurrent" Height="18" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="CPMax: " Height="18" />
+                <TextBlock Name="CPMax" Height="18" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="GPCurrent: " Height="18" />
+                <TextBlock Name="GPCurrent" Height="18" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="GPMax: " Height="18" />
+                <TextBlock Name="GPMax" Height="18" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="CastingPercentage: " Height="18" />
+                <TextBlock Name="CastingPercentage" Height="18" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="InCombat: " Height="18" />
+                <TextBlock Name="InCombat" Height="18" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="WeaponUnsheathed: " Height="18" />
+                <TextBlock Name="WeaponUnsheathed" Height="18" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="Status: " Height="18" />
+                <TextBlock Name="Status" Height="18" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="LevelProgression: " Height="18" />
+                <TextBlock Name="LevelProgression" Height="18" />
+            </StackPanel>
+        </StackPanel>
+    </Grid>
+</Window>

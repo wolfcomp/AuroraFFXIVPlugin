@@ -11,10 +11,10 @@ using Aurora.Devices;
 using Aurora.EffectsEngine;
 using Aurora.Profiles;
 using Aurora.Settings.Layers;
-using AuroraFFXIVGSIPlugin.FFXIV.GSI;
+using AuroraFFXIVPlugin.FFXIV.GSI;
 using Newtonsoft.Json;
 
-namespace AuroraFFXIVGSIPlugin.FFXIV.Layers
+namespace AuroraFFXIVPlugin.FFXIV.Layers
 {
     public class KeyBindLayerHandlerProperties : LayerHandlerProperties<KeyBindLayerHandlerProperties>
     {
@@ -35,7 +35,8 @@ namespace AuroraFFXIVGSIPlugin.FFXIV.Layers
     {
         private EffectLayer prev = new EffectLayer();
         private List<KeyBindStructure> prevKey = new List<KeyBindStructure>();
-
+        private List<DeviceKeys> prevDevice = new List<DeviceKeys>();
+ 
         public FFXIVKeyBindLayerHandler() : base()
         {
             _ID = "FFXIVKeyBindLayer";
@@ -55,27 +56,27 @@ namespace AuroraFFXIVGSIPlugin.FFXIV.Layers
             if (gamestate is GameState_FFXIV ffxiv)
             {
                 var keybinds = ffxiv.KeyBinds.ToList();
-                if (keybinds.Any() && !prevKey.All(t => prevKey.Contains(t)))
+                var recordedKeys = Global.InputEvents;
+                var modif = new List<DeviceKeys>();
+                if (recordedKeys.Alt)
+                {
+                    modif.AddRange(new [] { DeviceKeys.LEFT_ALT, DeviceKeys.LEFT_SHIFT });
+                }
+                if (recordedKeys.Control)
+                {
+                    modif.AddRange(new [] { DeviceKeys.LEFT_CONTROL, DeviceKeys.RIGHT_CONTROL });
+                }
+                if (recordedKeys.Shift)
+                {
+                    modif.AddRange(new [] { DeviceKeys.LEFT_SHIFT, DeviceKeys.RIGHT_SHIFT });
+                }
+                if (!recordedKeys.Shift && !recordedKeys.Control && !recordedKeys.Alt)
+                {
+                    modif.AddRange(new [] { DeviceKeys.NONE });
+                }
+                if (keybinds.Any() && (!prevKey.Any() ||!keybinds.All(t => prevKey.Contains(t)) || !prevDevice.Any() || !modif.All(t => prevDevice.Contains(t))))
                 {
                     var modifs = new List<DeviceKeys>();
-                    var recordedKeys = Global.InputEvents;
-                    var modif = new List<DeviceKeys>();
-                    if (recordedKeys.Alt)
-                    {
-                        modif.AddRange(new [] { DeviceKeys.LEFT_ALT, DeviceKeys.LEFT_SHIFT });
-                    }
-                    if (recordedKeys.Control)
-                    {
-                        modif.AddRange(new [] { DeviceKeys.LEFT_CONTROL, DeviceKeys.RIGHT_CONTROL });
-                    }
-                    if (recordedKeys.Shift)
-                    {
-                        modif.AddRange(new [] { DeviceKeys.LEFT_SHIFT, DeviceKeys.RIGHT_SHIFT });
-                    }
-                    if (!recordedKeys.Shift && !recordedKeys.Control && !recordedKeys.Alt)
-                    {
-                        modif.AddRange(new [] { DeviceKeys.NONE });
-                    }
                     foreach (var keyBind in keybinds.Where(t => t.Key != DeviceKeys.NONE && t.KeyMod.All(f => modif.Contains(f)) && (!modif.Any() || modif.All(f => t.KeyMod.Contains(f))) && (!Properties.Ignore || !t.Command.Contains("PERFORMANCE_MODE"))))
                     {
                         layer.Set(keyBind.Key, Properties.PrimaryColor);
@@ -86,6 +87,7 @@ namespace AuroraFFXIVGSIPlugin.FFXIV.Layers
                     }
                     layer.Set(modifs.ToArray(), Properties.PrimaryColor);
                     prevKey = keybinds;
+                    prevDevice = modif;
                 }
                 else
                     layer = prev;

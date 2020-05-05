@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Aurora.Devices;
 
-namespace AuroraFFXIVGSIPlugin
+namespace AuroraFFXIVPlugin
 {
     public struct KeyBindStructure
     {

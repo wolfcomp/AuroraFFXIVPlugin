@@ -3,12 +3,12 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:AuroraFFXIVGSIPlugin.FFXIV"
+             xmlns:local="clr-namespace:AuroraFFXIVPlugin.FFXIV"
              xmlns:EnumDeviceKeys="clr-namespace:Aurora.Devices"
              xmlns:EnumPercentEffectType="clr-namespace:Aurora.Settings"
              xmlns:EnumValueConverters="clr-namespace:Aurora.Utils"
              xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
-             xmlns:Controls="clr-namespace:Aurora.Controls" x:Class="AuroraFFXIVGSIPlugin.FFXIV.Control_FFXIV"
+             xmlns:Controls="clr-namespace:Aurora.Controls" x:Class="AuroraFFXIVPlugin.FFXIV.Control_FFXIV"
              mc:Ignorable="d" 
              d:DesignHeight="300" Height="Auto" Width="Auto" d:DesignWidth="850" >
 
@@ -20,9 +20,9 @@
                         <CheckBox x:Name="game_enabled" Content="Enable Aurora to provide lighting effects with Final Fantasy XIV" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Checked="game_enabled_Checked" Unchecked="game_enabled_Checked"/>
                         <TextBlock Margin="10,10,64,0" VerticalAlignment="Top" TextWrapping="Wrap"><Run Text="In order for "/><Run Text="FFXIV"/><Run Text=" support to work, you have to"/><Run Text=" get AuroraFFXIVGSIPlugin"/><Run Text=" in order for Aurora to receive lighting information. Press the &quot;Patch "/><Run Text="Aurora"/><Run Text="&quot; button to install automatically to "/><Run Text="Aurora"/><Run Text=". This should not trigger any "/><Run Text="report systems"/><Run Text=", but it should be used at your own risk"/><Run Text="."/></TextBlock>
                         <StackPanel Orientation="Horizontal" Margin="10,10,0,0">
-                            <Button x:Name="patch_button" Content="Patch Aurora" HorizontalAlignment="Left"  VerticalAlignment="Top" Click="patch_button_Click"/>
+                            <Button x:Name="actions_button" Content="Peek Actions" HorizontalAlignment="Left"  VerticalAlignment="Top" Click="actions_button_Click"/>
+                            <Button x:Name="player_button" Content="Peek Player" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" Click="player_button_Click" />
                         </StackPanel>
-                        <Button x:Name="unpatch_button" Content="Unpatch Aurora" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Click="unpatch_button_Click"/>
                     </StackPanel>
                 </Grid>
             </TabItem>

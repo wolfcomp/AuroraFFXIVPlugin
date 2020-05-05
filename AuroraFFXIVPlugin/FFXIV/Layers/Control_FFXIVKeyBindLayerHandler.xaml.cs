@@ -17,7 +17,7 @@ using Aurora.Utils;
 using Xceed.Wpf.Toolkit;
 using Application = Aurora.Profiles.Application;
 
-namespace AuroraFFXIVGSIPlugin.FFXIV.Layers
+namespace AuroraFFXIVPlugin.FFXIV.Layers
 {
     /// <summary>
     /// Interaction logic for Control_FFXIVActionLayerHandler.xaml

@@ -9,7 +9,7 @@ using Sharlayan.Core;
 using Sharlayan.Core.Enums;
 using Sharlayan.Models.ReadResults;
 
-namespace AuroraFFXIVGSIPlugin
+namespace AuroraFFXIVPlugin
 {
     public class PlayerStruct : StringProperty<PlayerStruct>
     {
@@ -73,6 +73,7 @@ namespace AuroraFFXIVGSIPlugin
             GPMax = player.GPMax;
             JobType = player.JobType;
             Status = status;
+            LevelProgression = player.LevelProgression;
         }
 
         private double getEXPFromLevel(int level)

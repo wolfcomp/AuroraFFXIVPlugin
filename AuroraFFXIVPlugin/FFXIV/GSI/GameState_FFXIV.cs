@@ -6,15 +6,15 @@ using System.Threading.Tasks;
 using Aurora.Profiles;
 using Newtonsoft.Json.Linq;
 
-namespace AuroraFFXIVGSIPlugin.FFXIV.GSI
+namespace AuroraFFXIVPlugin.FFXIV.GSI
 {
     public class GameState_FFXIV : GameState<GameState_FFXIV>
     {
-        public FFXIVActionNode Actions { get; } = new FFXIVActionNode();
+        public FFXIVActionNode Actions { get; set; } = new FFXIVActionNode();
 
         public PlayerStruct Player { get; set; } = new PlayerStruct();
 
-        public FFXIVKeyBindNode KeyBinds { get; } = new FFXIVKeyBindNode();
+        public FFXIVKeyBindNode KeyBinds { get; set; } = new FFXIVKeyBindNode();
         
         public override bool Equals(object obj)
         {
@@ -58,6 +58,16 @@ namespace AuroraFFXIVGSIPlugin.FFXIV.GSI
                 return actionNode.All(t => this.Any(f => f.GetHashCode() == t.GetHashCode()));
             }
             return false;
+        }
+
+        public override string ToString()
+        {
+            return string.Join(Environment.NewLine, this.Select(t => t.ToString()));
+        }
+
+        public List<string> GetList()
+        {
+            return this.Select(t => t.ToString()).ToList();
         }
     }
 }

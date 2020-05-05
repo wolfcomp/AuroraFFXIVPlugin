@@ -12,10 +12,10 @@ using Aurora.EffectsEngine;
 using Aurora.Profiles;
 using Aurora.Settings.Layers;
 using Aurora.Utils;
-using AuroraFFXIVGSIPlugin.FFXIV.GSI;
+using AuroraFFXIVPlugin.FFXIV.GSI;
 using Newtonsoft.Json;
 
-namespace AuroraFFXIVGSIPlugin.FFXIV.Layers
+namespace AuroraFFXIVPlugin.FFXIV.Layers
 {
     public class FFXIVActionLayerHandlerProperties : LayerHandlerProperties<FFXIVActionLayerHandlerProperties>
     {
@@ -61,6 +61,8 @@ namespace AuroraFFXIVGSIPlugin.FFXIV.Layers
     {
         private EffectLayer prev = new EffectLayer();
         private List<ActionStructure> prevActions = new List<ActionStructure>();
+        private List<Func<ActionStructure, bool>> prevDevice = new List<Func<ActionStructure, bool>>();
+        private double prevCastPercent;
 
         public FFXIVActionLayerHandler() : base()
         {
@@ -80,28 +82,32 @@ namespace AuroraFFXIVGSIPlugin.FFXIV.Layers
             layer.Fill(Color.Transparent);
             if (gamestate is GameState_FFXIV ffxiv)
             {
-                var actions = ffxiv.Actions.ToList();
-                if (actions.Any() && !prevActions.All(t => actions.Contains(t)))
+                lock (ffxiv.Actions)
                 {
-                    layer.Set(actions.Where(t => t.Key != DeviceKeys.NONE).Select(t => t.Key).ToArray(), Properties.NotAvailable);
                     var modif = getModifs();
-                    foreach (var ffxivAction in actions.Where(t => modif.All(f => f(t)) && t.Key != DeviceKeys.NONE))
+                    if (ffxiv.Actions.Any() && (prevCastPercent != ffxiv.Player.CastingPercentage ||!prevActions.Any() || !ffxiv.Actions.All(t => prevActions.Any(f => f.Equals(t))) || !prevDevice.Any() || !modif.All(t => prevDevice.Contains(t))))
                     {
-                        layer.Set(ffxivAction.Key, ColorUtils.MultiplyColorByScalar(Properties.PrimaryColor, ffxivAction.GetCoolDownPrecent(ffxiv)));
-                        if (ffxivAction.IsProcOrCombo)
-                            layer.Set(ffxivAction.Key, ColorUtils.MultiplyColorByScalar(Properties.Combo, ffxivAction.GetCoolDownPrecent(ffxiv)));
-                        if (!ffxivAction.InRange)
-                            layer.Set(ffxivAction.Key, ColorUtils.MultiplyColorByScalar(Properties.OutOfRange, ffxivAction.GetCoolDownPrecent(ffxiv)));
-                        if (!ffxivAction.IsAvailable)
-                            layer.Set(ffxivAction.Key, Properties.NotAvailable);
+                        layer.Set(ffxiv.Actions.Where(t => t.Key != DeviceKeys.NONE).Select(t => t.Key).ToArray(), Properties.NotAvailable);
+                        foreach (var ffxivAction in ffxiv.Actions.Where(t => modif.All(f => f(t)) && t.Key != DeviceKeys.NONE))
+                        {
+                            layer.Set(ffxivAction.Key, ColorUtils.MultiplyColorByScalar(Properties.PrimaryColor, ffxivAction.GetCoolDownPrecent(ffxiv)));
+                            if (ffxivAction.IsProcOrCombo)
+                                layer.Set(ffxivAction.Key, ColorUtils.MultiplyColorByScalar(Properties.Combo, ffxivAction.GetCoolDownPrecent(ffxiv)));
+                            if (!ffxivAction.InRange)
+                                layer.Set(ffxivAction.Key, ColorUtils.MultiplyColorByScalar(Properties.OutOfRange, ffxivAction.GetCoolDownPrecent(ffxiv)));
+                            if (!ffxivAction.IsAvailable)
+                                layer.Set(ffxivAction.Key, Properties.NotAvailable);
+                        }
+                        setModifKeys(layer, ffxiv.Actions.Where(t => t.IsCtrl).ToArray(), new [] { DeviceKeys.LEFT_CONTROL, DeviceKeys.RIGHT_CONTROL }, ffxiv);
+                        setModifKeys(layer, ffxiv.Actions.Where(t => t.IsShift).ToArray(), new [] { DeviceKeys.LEFT_SHIFT, DeviceKeys.RIGHT_SHIFT }, ffxiv);
+                        setModifKeys(layer, ffxiv.Actions.Where(t => t.IsAlt).ToArray(), new [] { DeviceKeys.LEFT_ALT, DeviceKeys.RIGHT_ALT }, ffxiv);
+                        prevActions = ffxiv.Actions.ToList();
+                        prevDevice = modif;
+                        prevCastPercent = ffxiv.Player.CastingPercentage;
                     }
-                    setModifKeys(layer, actions.Where(t => t.IsCtrl).ToArray(), new [] { DeviceKeys.LEFT_CONTROL, DeviceKeys.RIGHT_CONTROL }, ffxiv);
-                    setModifKeys(layer, actions.Where(t => t.IsShift).ToArray(), new [] { DeviceKeys.LEFT_SHIFT, DeviceKeys.RIGHT_SHIFT }, ffxiv);
-                    setModifKeys(layer, actions.Where(t => t.IsAlt).ToArray(), new [] { DeviceKeys.LEFT_ALT, DeviceKeys.RIGHT_ALT }, ffxiv);
-                    prevActions = actions;
+                    else
+                        layer = prev;
                 }
-                else
-                    layer = prev;
             }
             else
                 layer = prev;
@@ -143,9 +149,8 @@ namespace AuroraFFXIVGSIPlugin.FFXIV.Layers
         private void setModifKeys(EffectLayer layer, ActionStructure[] actions, DeviceKeys[] deviceKeys, GameState_FFXIV ffxiv)
         {
             if (!actions.Any()) return;
-            var cooldown = actions.Select(t => t.GetCoolDownPrecent(ffxiv)).Max();
-            var scalar = cooldown == 0 ? 100 : cooldown / 100D;
-            if (actions.Any()) layer.Set(deviceKeys, ColorUtils.MultiplyColorByScalar(Properties.PrimaryColor, scalar));
+            var scalar = actions.Select(t => t.GetCoolDownPrecent(ffxiv)).Max();
+            layer.Set(deviceKeys, ColorUtils.MultiplyColorByScalar(Properties.PrimaryColor, scalar));
             if (actions.Any(t => t.IsProcOrCombo)) layer.Set(deviceKeys, ColorUtils.MultiplyColorByScalar(Properties.Combo, scalar));
             if (!actions.Any(t => t.InRange)) layer.Set(deviceKeys, ColorUtils.MultiplyColorByScalar(Properties.OutOfRange, scalar));
             if (!actions.Any(t => t.IsAvailable)) layer.Set(deviceKeys, Properties.NotAvailable);

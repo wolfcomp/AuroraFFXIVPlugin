@@ -8,17 +8,17 @@ using System.Text;
 using System.Threading.Tasks;
 using Aurora;
 using Aurora.Devices;
-using AuroraFFXIVGSIPlugin.FFXIV.GSI;
+using AuroraFFXIVPlugin.FFXIV.GSI;
 
-namespace AuroraFFXIVGSIPlugin
+namespace AuroraFFXIVPlugin
 {
     public struct ActionStructure
     {
-        public int CoolDownPercent;
-        public bool InRange;
-        public bool IsAvailable;
-        public bool IsProcOrCombo;
-        public int RemainingCost;
+        public readonly int CoolDownPercent;
+        public readonly bool InRange;
+        public readonly bool IsAvailable;
+        public readonly bool IsProcOrCombo;
+        public readonly int RemainingCost;
         public bool IsCtrl;
         public bool IsShift;
         public bool IsAlt;
@@ -56,7 +56,7 @@ namespace AuroraFFXIVGSIPlugin
                                 break;
                         }
                     }
-                    Key = getActualDeviceKey(s[s.Length - 1].Contains("+") ? "=" : s[s.Length - 1]);
+                    Key = getActualDeviceKey(string.IsNullOrWhiteSpace(s[s.Length - 1]) ? "=" : s[s.Length - 1]);
                 }
                 else
                     Key = getActualDeviceKey(keyBinds.Contains("+") ? "=" : keyBinds);
@@ -98,6 +98,33 @@ namespace AuroraFFXIVGSIPlugin
                    IsShift == action.IsShift && 
                    IsAlt == action.IsAlt && 
                    Key == action.Key;
+        }
+
+        public bool Equals(ActionStructure other)
+        {
+            return CoolDownPercent == other.CoolDownPercent && InRange == other.InRange && IsAvailable == other.IsAvailable && IsProcOrCombo == other.IsProcOrCombo && RemainingCost == other.RemainingCost && IsCtrl == other.IsCtrl && IsShift == other.IsShift && IsAlt == other.IsAlt && Key == other.Key;
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                var hashCode = CoolDownPercent;
+                hashCode = (hashCode * 397) ^ InRange.GetHashCode();
+                hashCode = (hashCode * 397) ^ IsAvailable.GetHashCode();
+                hashCode = (hashCode * 397) ^ IsProcOrCombo.GetHashCode();
+                hashCode = (hashCode * 397) ^ RemainingCost;
+                hashCode = (hashCode * 397) ^ IsCtrl.GetHashCode();
+                hashCode = (hashCode * 397) ^ IsShift.GetHashCode();
+                hashCode = (hashCode * 397) ^ IsAlt.GetHashCode();
+                hashCode = (hashCode * 397) ^ (int) Key;
+                return hashCode;
+            }
+        }
+
+        public override string ToString()
+        {
+            return $"{CoolDownPercent},{InRange},{IsAvailable},{IsProcOrCombo},{RemainingCost},{IsCtrl},{IsShift},{IsAlt},{Key}";
         }
     }
 }

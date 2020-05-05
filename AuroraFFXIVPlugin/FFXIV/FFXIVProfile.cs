@@ -10,9 +10,9 @@ using Aurora.Settings;
 using Aurora.Settings.Layers;
 using Aurora.Settings.Overrides.Logic;
 using Aurora.Settings.Overrides.Logic.Builder;
-using AuroraFFXIVGSIPlugin.FFXIV.Layers;
+using AuroraFFXIVPlugin.FFXIV.Layers;
 
-namespace AuroraFFXIVGSIPlugin
+namespace AuroraFFXIVPlugin
 {
     public class FFXIVProfile : ApplicationProfile
     {

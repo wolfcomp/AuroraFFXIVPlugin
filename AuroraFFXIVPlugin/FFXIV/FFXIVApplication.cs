@@ -7,16 +7,16 @@ using Aurora;
 using Aurora.Profiles;
 using Aurora.Profiles.EliteDangerous;
 using Aurora.Settings;
-using AuroraFFXIVGSIPlugin.FFXIV;
-using AuroraFFXIVGSIPlugin.FFXIV.GSI;
-using AuroraFFXIVGSIPlugin.FFXIV.Layers;
+using AuroraFFXIVPlugin.FFXIV.GSI;
+using AuroraFFXIVPlugin.FFXIV;
+using AuroraFFXIVPlugin.FFXIV.Layers;
 using Newtonsoft.Json;
 
-namespace AuroraFFXIVGSIPlugin
+namespace AuroraFFXIVPlugin
 {
     public class FFXIVApplication : Application
     {
-        private FFXIVMain ffxivMain;
+        public FFXIVMain FFXIVMain;
 
         public FFXIVApplication(FFXIVMain ffxiv) : base(new LightEventConfig
         {
@@ -32,8 +32,8 @@ namespace AuroraFFXIVGSIPlugin
             ProcessNames = new []{ "ffxiv_dx11.exe" }
         })
         {
-            ffxivMain = ffxiv;
-            ffxivMain.MemoryRead += FfxivMain_MemoryRead;
+            FFXIVMain = ffxiv;
+            FFXIVMain.MemoryRead += FfxivMain_MemoryRead;
             var extra = new List<LayerHandlerEntry>
             {
                 new LayerHandlerEntry("FFXIVActionLayer", "FFXIV Actions Layer", typeof(FFXIVActionLayerHandler)),
@@ -50,18 +50,18 @@ namespace AuroraFFXIVGSIPlugin
 
         private void FfxivMain_MemoryRead()
         {
-            SetGameState(ffxivMain.GameState);
+            SetGameState(FFXIVMain.GameState);
         }
 
         public override void OnStart()
         {
-            ffxivMain.StartReading();
+            FFXIVMain.StartReading();
             base.OnStart();
         }
 
         public override void OnStop()
         {
-            ffxivMain.StopReading();
+            FFXIVMain.StopReading();
             base.OnStart();
         }
     }

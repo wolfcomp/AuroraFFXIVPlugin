@@ -6,17 +6,17 @@ using System.Threading.Tasks;
 using Aurora.Profiles;
 using Aurora.Settings;
 
-namespace AuroraFFXIVGSIPlugin
+namespace AuroraFFXIVPlugin
 {
     public class PluginMain : IPlugin
     {
-        public string ID { get; private set; } = "AuroraFFXIVGSIPlugin";
+        public string ID { get; private set; } = "AuroraFFXIVPlugin";
 
-        public string Title { get; private set; } = "FFXIV Aurora GSI Plugin";
+        public string Title { get; private set; } = "FFXIV Aurora Plugin";
 
         public string Author { get; private set; } = "WildWolf";
 
-        public Version Version { get; private set; } = new Version(0, 2);
+        public Version Version { get; private set; } = new Version(1, 0, 0);
 
         private IPluginHost pluginHost;
 

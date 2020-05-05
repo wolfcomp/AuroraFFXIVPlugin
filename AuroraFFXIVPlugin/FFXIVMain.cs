@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Aurora;
 using Aurora.Devices;
-using AuroraFFXIVGSIPlugin.FFXIV.GSI;
+using AuroraFFXIVPlugin.FFXIV.GSI;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Sharlayan;
@@ -15,7 +15,7 @@ using Sharlayan.Core.Enums;
 using Sharlayan.Models;
 using Action = System.Action;
 
-namespace AuroraFFXIVGSIPlugin
+namespace AuroraFFXIVPlugin
 {
     public class FFXIVMain
     {
@@ -55,8 +55,11 @@ namespace AuroraFFXIVGSIPlugin
                         var actions = Reader.GetActions();
                         if (actions.ActionContainers.Any())
                         {
-                            GameState.Actions.Clear();
-                            GameState.Actions.AddRange(actions.ActionContainers.SelectMany(t => t.ActionItems.Select(f => new ActionStructure(f))));
+                            lock (GameState.Actions)
+                            {
+                                GameState.Actions.Clear();
+                                GameState.Actions.AddRange(actions.ActionContainers.SelectMany(t => t.ActionItems.Select(f => new ActionStructure(f))));
+                            }
                         }
                         var player = Reader.GetCurrentPlayer();
                         var actors = Reader.GetActors();
