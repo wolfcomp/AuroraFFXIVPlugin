@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30002.166
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AuroraFFXIVPlugin", "AuroraFFXIVGSIPlugin\AuroraFFXIVPlugin.csproj", "{F361ED51-672D-4597-90F0-0B857DB3FFB2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AuroraFFXIVPlugin", "AuroraFFXIVPlugin\AuroraFFXIVPlugin.csproj", "{F361ED51-672D-4597-90F0-0B857DB3FFB2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AuroraFFXIVPluginTest", "AuroraFFXIVGSIPluginTest\AuroraFFXIVPluginTest.csproj", "{5BF570A6-4011-45A6-9EBF-76214DF5C481}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AuroraFFXIVPluginTest", "AuroraFFXIVPluginTest\AuroraFFXIVPluginTest.csproj", "{5BF570A6-4011-45A6-9EBF-76214DF5C481}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
