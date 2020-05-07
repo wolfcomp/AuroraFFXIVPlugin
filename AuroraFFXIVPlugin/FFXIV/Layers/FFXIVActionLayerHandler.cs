@@ -85,7 +85,7 @@ namespace AuroraFFXIVPlugin.FFXIV.Layers
                 lock (ffxiv.Actions)
                 {
                     var modif = getModifs();
-                    if (ffxiv.Actions.Any() && (prevCastPercent != ffxiv.Player.CastingPercentage ||!prevActions.Any() || !ffxiv.Actions.All(t => prevActions.Any(f => f.Equals(t))) || !prevDevice.Any() || !modif.All(t => prevDevice.Contains(t))))
+                    if (ffxiv.Actions.Any() && (Math.Abs(ffxiv.Player.CastingPercentage - prevCastPercent) > 0 || !prevActions.Any() || !ffxiv.Actions.All(t => prevActions.Any(f => f.Equals(t))) || !prevDevice.Any() || !modif.All(t => prevDevice.Contains(t))))
                     {
                         layer.Set(ffxiv.Actions.Where(t => t.Key != DeviceKeys.NONE).Select(t => t.Key).ToArray(), Properties.NotAvailable);
                         foreach (var ffxivAction in ffxiv.Actions.Where(t => modif.All(f => f(t)) && t.Key != DeviceKeys.NONE))
