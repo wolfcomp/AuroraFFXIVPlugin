@@ -23,7 +23,13 @@ namespace AuroraFFXIVPlugin
             base.Reset();
             Layers = new ObservableCollection<Layer>
             {
-                new Layer("Status Layer", new SolidFillLayerHandler(),
+                new Layer("Status Layer", new SolidFillLayerHandler
+                          {
+                              Properties = new SolidFillLayerHandlerProperties
+                              {
+                                  _PrimaryColor = Color.FromArgb(0,0,0,0)
+                              }
+                          },
                     new OverrideLogicBuilder().SetLookupTable("_PrimaryColor", new OverrideLookupTableBuilder<Color>()
                         .AddEntry(Color.FromArgb(0, 0, 0, 0), new BooleanGSINumeric { Operand1Path = "Player/Status", Operand2Path = "0" })
                         .AddEntry(Color.FromArgb(255, 0, 0), new BooleanGSINumeric { Operand1Path = "Player/Status", Operand2Path = "12" })

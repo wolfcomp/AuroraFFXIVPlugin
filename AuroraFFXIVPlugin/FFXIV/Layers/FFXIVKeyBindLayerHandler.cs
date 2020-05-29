@@ -37,11 +37,6 @@ namespace AuroraFFXIVPlugin.FFXIV.Layers
         private List<KeyBindStructure> prevKey = new List<KeyBindStructure>();
         private List<DeviceKeys> prevDevice = new List<DeviceKeys>();
  
-        public FFXIVKeyBindLayerHandler() : base()
-        {
-            _ID = "FFXIVKeyBindLayer";
-        }
-
         protected override UserControl CreateControl()
         {
             return new Control_FFXIVKeyBindLayerHandler(this);

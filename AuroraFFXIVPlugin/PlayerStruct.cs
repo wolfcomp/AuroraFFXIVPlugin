@@ -11,7 +11,7 @@ using Sharlayan.Models.ReadResults;
 
 namespace AuroraFFXIVPlugin
 {
-    public class PlayerStruct : StringProperty<PlayerStruct>
+    public class PlayerStruct : Node
     {
         public JobType JobType;
         public int HPCurrent;

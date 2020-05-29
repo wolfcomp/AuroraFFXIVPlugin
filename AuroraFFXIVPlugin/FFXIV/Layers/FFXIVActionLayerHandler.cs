@@ -63,12 +63,7 @@ namespace AuroraFFXIVPlugin.FFXIV.Layers
         private List<ActionStructure> prevActions = new List<ActionStructure>();
         private List<Func<ActionStructure, bool>> prevDevice = new List<Func<ActionStructure, bool>>();
         private double prevCastPercent;
-
-        public FFXIVActionLayerHandler() : base()
-        {
-            _ID = "FFXIVActionLayer";
-        }
-
+        
         protected override UserControl CreateControl()
         {
             return new Control_FFXIVActionLayerHandler(this);

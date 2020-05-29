@@ -34,18 +34,8 @@ namespace AuroraFFXIVPlugin
         {
             FFXIVMain = ffxiv;
             FFXIVMain.MemoryRead += FfxivMain_MemoryRead;
-            var extra = new List<LayerHandlerEntry>
-            {
-                new LayerHandlerEntry("FFXIVActionLayer", "FFXIV Actions Layer", typeof(FFXIVActionLayerHandler)),
-                new LayerHandlerEntry("FFXIVKeyBindLayer", "FFXIV Key Binds Layer", typeof(FFXIVKeyBindLayerHandler))
-            };
-
-            Global.LightingStateManager.RegisterLayerHandlers(extra, false);
-
-            foreach (var entry in extra)
-            {
-                Config.ExtraAvailableLayers.Add(entry.Key);
-            }
+            AllowLayer<FFXIVActionLayerHandler>();
+            AllowLayer<FFXIVKeyBindLayerHandler>();
         }
 
         private void FfxivMain_MemoryRead()

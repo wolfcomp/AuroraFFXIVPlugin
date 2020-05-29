@@ -8,7 +8,7 @@ using Newtonsoft.Json.Linq;
 
 namespace AuroraFFXIVPlugin.FFXIV.GSI
 {
-    public class GameState_FFXIV : GameState<GameState_FFXIV>
+    public class GameState_FFXIV : GameState
     {
         public FFXIVActionNode Actions { get; set; } = new FFXIVActionNode();
 
