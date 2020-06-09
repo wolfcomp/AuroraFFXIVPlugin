@@ -31,6 +31,7 @@ namespace AuroraFFXIVPlugin.FFXIV.Layers
         public KeyBindLayerHandlerProperties(bool assign_default = false) : base(assign_default) { }
     }
 
+    [LayerHandlerMeta(Name = "Keybind Layer")]
     public class FFXIVKeyBindLayerHandler : LayerHandler<KeyBindLayerHandlerProperties>
     {
         private EffectLayer prev = new EffectLayer();

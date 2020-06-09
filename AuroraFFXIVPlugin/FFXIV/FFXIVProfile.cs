@@ -27,7 +27,7 @@ namespace AuroraFFXIVPlugin
                           {
                               Properties = new SolidFillLayerHandlerProperties
                               {
-                                  _PrimaryColor = Color.FromArgb(0,0,0,0)
+                                  _PrimaryColor = Color.Transparent
                               }
                           },
                     new OverrideLogicBuilder().SetLookupTable("_PrimaryColor", new OverrideLookupTableBuilder<Color>()

@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Aurora.Profiles;
 using Aurora.Settings;
+using AuroraFFXIVPlugin.FFXIV.Layers;
 
 namespace AuroraFFXIVPlugin
 {
@@ -38,6 +39,8 @@ namespace AuroraFFXIVPlugin
             if (manager is LightingStateManager stateManager)
             {
                 stateManager.RegisterEvent(new FFXIVApplication(ffxiv));
+                stateManager.RegisterLayer<FFXIVActionLayerHandler>();
+                stateManager.RegisterLayer<FFXIVKeyBindLayerHandler>();
             }
         }
     }

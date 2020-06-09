@@ -57,6 +57,7 @@ namespace AuroraFFXIVPlugin.FFXIV.Layers
         }
     }
 
+    [LayerHandlerMeta(Name = "Action Layer")]
     public class FFXIVActionLayerHandler : LayerHandler<FFXIVActionLayerHandlerProperties>
     {
         private EffectLayer prev = new EffectLayer();
