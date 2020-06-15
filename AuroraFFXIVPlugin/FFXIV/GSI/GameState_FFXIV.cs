@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Aurora.Profiles;
-using Newtonsoft.Json.Linq;
 
 namespace AuroraFFXIVPlugin.FFXIV.GSI
 {

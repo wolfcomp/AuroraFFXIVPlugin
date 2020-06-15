@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Aurora.Profiles;
 using Aurora.Settings;
 using AuroraFFXIVPlugin.FFXIV.Layers;
@@ -11,13 +7,13 @@ namespace AuroraFFXIVPlugin
 {
     public class PluginMain : IPlugin
     {
-        public string ID { get; private set; } = "AuroraFFXIVPlugin";
+        public string ID => "AuroraFFXIVPlugin";
 
-        public string Title { get; private set; } = "FFXIV Aurora Plugin";
+        public string Title => "FFXIV Aurora Plugin";
 
-        public string Author { get; private set; } = "WildWolf";
+        public string Author => "WildWolf";
 
-        public Version Version { get; private set; } = new Version(1, 0, 0);
+        public Version Version => new Version(1, 0, 0);
 
         private IPluginHost pluginHost;
 

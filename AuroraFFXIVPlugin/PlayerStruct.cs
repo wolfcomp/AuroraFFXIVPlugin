@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Aurora.Profiles;
-using Newtonsoft.Json;
+﻿using Aurora.Profiles;
 using Sharlayan.Core;
 using Sharlayan.Core.Enums;
 using Sharlayan.Models.ReadResults;

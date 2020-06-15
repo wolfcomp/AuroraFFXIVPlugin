@@ -1,16 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Aurora;
+﻿using System.Reflection;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using Aurora.Profiles;
-using Aurora.Profiles.EliteDangerous;
 using Aurora.Settings;
-using AuroraFFXIVPlugin.FFXIV.GSI;
 using AuroraFFXIVPlugin.FFXIV;
 using AuroraFFXIVPlugin.FFXIV.Layers;
-using Newtonsoft.Json;
 
 namespace AuroraFFXIVPlugin
 {
@@ -18,13 +12,24 @@ namespace AuroraFFXIVPlugin
     {
         public FFXIVMain FFXIVMain;
 
+        public override ImageSource Icon
+        {
+            get
+            {
+                BitmapImage b = new BitmapImage();
+                b.BeginInit();
+                b.StreamSource = Assembly.GetExecutingAssembly().GetManifestResourceStream("AuroraFFXIVPlugin.ffxiv_48x48.png");
+                b.EndInit();
+                return b;
+            }
+        }
+
         public FFXIVApplication(FFXIVMain ffxiv) : base(new LightEventConfig
         {
             Name = "FFXIV",
             AppID = "39210",
             ID = "ffxiv",
             Event = new GameEvent_Generic(),
-            IconURI = "Resources/ffxiv_48x48.png",
             GameStateType = typeof(FFXIV.GSI.GameState_FFXIV),
             ProfileType = typeof(FFXIVProfile),
             SettingsType = typeof(FirstTimeApplicationSettings),
