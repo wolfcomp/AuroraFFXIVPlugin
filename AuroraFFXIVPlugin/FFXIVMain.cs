@@ -92,7 +92,7 @@ namespace AuroraFFXIVPlugin
                                         case Actor.Type.PC:
                                             if (playerActor.ID == ID)
                                             {
-                                                playerObj = new PlayerStruct(playerObj, source[6362]);
+                                                playerObj = new PlayerStruct(playerObj, source[6366]);
                                             }
                                             break;
                                         default:
@@ -145,12 +145,23 @@ namespace AuroraFFXIVPlugin
         #region Read KEYBIND.dat
         private void ReadFiles(string folder)
         {
-            if (!folder.Contains("FFXIV_CHR")) throw new ArgumentException("Folder must be a FFXIV_CHR folder", nameof(folder));
-            BinaryReader reader = new BinaryReader(File.Open(Path.Combine(folder, "KEYBIND.dat"), FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
-            var header = GetHeader(reader);
-            GameState.KeyBinds.Clear();
-            while (reader.BaseStream.Position < header["data_size"].ToObject<long>())
-                ReadKeybind(reader);
+            if (!folder.Contains("FFXIV_CHR"))
+            {
+                Global.logger.Error(new ArgumentException("Folder must be a FFXIV_CHR folder", nameof(folder)), "Tried to read wrong folder");
+                return;
+            }
+            try
+            {
+                BinaryReader reader = new BinaryReader(File.Open(Path.Combine(folder, "KEYBIND.dat"), FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
+                var header = GetHeader(reader);
+                GameState.KeyBinds.Clear();
+                while (reader.BaseStream.Position < header["data_size"].ToObject<long>())
+                    ReadKeybind(reader);
+            }
+            catch (Exception e)
+            {
+                Global.logger.Error(e, "Failed to read KEYBIND.dat");
+            }
         }
 
         private JObject GetHeader(BinaryReader reader)
@@ -197,7 +208,7 @@ namespace AuroraFFXIVPlugin
         private char[] Xor(char[] input, byte xor) => input.Select(c => (char) (c ^ xor)).ToArray();
         #endregion
 
-        private void SetProcess()
+        public void SetProcess()
         {
             Process[] processes = Process.GetProcessesByName("ffxiv_dx11");
             if (processes.Any())
