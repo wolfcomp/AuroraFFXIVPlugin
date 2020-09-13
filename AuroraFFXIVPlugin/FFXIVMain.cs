@@ -38,7 +38,7 @@ namespace AuroraFFXIVPlugin
             watcher.Changed += WatcherOnChanged;
             watcher.Created += WatcherOnChanged;
             watcher.Deleted += WatcherOnChanged;
-            watcher.Filter = "*.*";
+            watcher.Filter = "KEYBIND.dat";
             watcher.EnableRaisingEvents = true;
         }
 
@@ -138,8 +138,19 @@ namespace AuroraFFXIVPlugin
 
         private void WatcherOnChanged(object sender, FileSystemEventArgs e)
         {
-            if (e.FullPath.Contains("FFXIV_CHR") && !e.FullPath.Contains("\\log\\"))
-                ReadFiles(new FileInfo(e.FullPath).DirectoryName);
+            string dirName = new FileInfo(e.FullPath).DirectoryName;
+            if (dirName.Contains("FFXIV_CHR"))
+            {
+                try
+                {
+                    ReadFiles(dirName);
+                }
+                catch (System.IO.FileNotFoundException)
+                {
+                    // Directory watcher triggered on folder deletion
+                    return;
+                }
+            }
         }
 
         #region Read KEYBIND.dat
@@ -147,21 +158,16 @@ namespace AuroraFFXIVPlugin
         {
             if (!folder.Contains("FFXIV_CHR"))
             {
-                Global.logger.Error(new ArgumentException("Folder must be a FFXIV_CHR folder", nameof(folder)), "Tried to read wrong folder");
+                string message = "Folder must be a FFXIV_CHR folder. Got '" + folder + "'";
+                Global.logger.Error(new ArgumentException(message, nameof(folder)), "Tried to read wrong folder");
+
                 return;
             }
-            try
-            {
-                BinaryReader reader = new BinaryReader(File.Open(Path.Combine(folder, "KEYBIND.dat"), FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
-                var header = GetHeader(reader);
-                GameState.KeyBinds.Clear();
-                while (reader.BaseStream.Position < header["data_size"].ToObject<long>())
-                    ReadKeybind(reader);
-            }
-            catch (Exception e)
-            {
-                Global.logger.Error(e, "Failed to read KEYBIND.dat");
-            }
+            BinaryReader reader = new BinaryReader(File.Open(Path.Combine(folder, "KEYBIND.dat"), FileMode.Open, FileAccess.Read));
+            var header = GetHeader(reader);
+            GameState.KeyBinds.Clear();
+            while (reader.BaseStream.Position < header["data_size"].ToObject<long>())
+                ReadKeybind(reader);
         }
 
         private JObject GetHeader(BinaryReader reader)
