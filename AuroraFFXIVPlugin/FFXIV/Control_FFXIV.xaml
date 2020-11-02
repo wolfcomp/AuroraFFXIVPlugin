@@ -18,7 +18,6 @@
                 <Grid>
                     <StackPanel>
                         <CheckBox x:Name="game_enabled" Content="Enable Aurora to provide lighting effects with Final Fantasy XIV" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Checked="game_enabled_Checked" Unchecked="game_enabled_Checked"/>
-                        <TextBlock Margin="10,10,64,0" VerticalAlignment="Top" TextWrapping="Wrap"><Run Text="In order for "/><Run Text="FFXIV"/><Run Text=" support to work, you have to"/><Run Text=" get AuroraFFXIVGSIPlugin"/><Run Text=" in order for Aurora to receive lighting information. Press the &quot;Patch "/><Run Text="Aurora"/><Run Text="&quot; button to install automatically to "/><Run Text="Aurora"/><Run Text=". This should not trigger any "/><Run Text="report systems"/><Run Text=", but it should be used at your own risk"/><Run Text="."/></TextBlock>
                         <StackPanel Orientation="Horizontal" Margin="20,10,0,0">
                             <Button x:Name="actions_button" Content="Peek Actions" HorizontalAlignment="Left"  VerticalAlignment="Top" Click="actions_button_Click"/>
                             <Button x:Name="player_button" Content="Peek Player" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" Click="player_button_Click" />
