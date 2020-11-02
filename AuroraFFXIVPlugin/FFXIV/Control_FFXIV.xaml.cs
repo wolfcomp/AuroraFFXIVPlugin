@@ -14,6 +14,7 @@ namespace AuroraFFXIVPlugin.FFXIV
     public partial class Control_FFXIV : UserControl
     {
         private Application profile_manager;
+        private static readonly string[] FileStrings = {"actions.json","statuses.json","signatures-x64.json","structures-x64.json","zones.json"};
 
         public Control_FFXIV(Application profile)
         {
@@ -47,6 +48,19 @@ namespace AuroraFFXIVPlugin.FFXIV
             {
                 profile_manager.Settings.IsEnabled = (this.game_enabled.IsChecked.HasValue) ? this.game_enabled.IsChecked.Value : false;
                 profile_manager.SaveProfiles();
+            }
+        }
+
+        private void Reset_structure_cache_OnClick(object sender, RoutedEventArgs e)
+        {
+            if (profile_manager is FFXIVApplication ffxivApplication)
+            {
+                ffxivApplication.FFXIVMain.StopReading();
+                foreach (var fileString in FileStrings)
+                {
+                    File.Delete(Path.Combine(Environment.CurrentDirectory, fileString));
+                }
+                ffxivApplication.FFXIVMain.StartReading();
             }
         }
     }
