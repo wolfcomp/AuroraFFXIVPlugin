@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using Aurora;
 using Aurora.Devices;
@@ -11,6 +12,7 @@ using Newtonsoft.Json.Linq;
 using Sharlayan;
 using Sharlayan.Core.Enums;
 using Sharlayan.Models;
+using Sharlayan.Models.Structures;
 using Action = System.Action;
 
 namespace AuroraFFXIVPlugin
@@ -21,10 +23,13 @@ namespace AuroraFFXIVPlugin
 
         public event Action MemoryRead;
 
+        public StructuresContainer Structures;
+
         private bool read = false;
 
         public FFXIVMain()
         {
+            Structures = (StructuresContainer)MemoryHandler.Instance.GetType().GetFields(BindingFlags.NonPublic | BindingFlags.Instance).First(t => t.FieldType == typeof(StructuresContainer)).GetValue(MemoryHandler.Instance);
             FileWatcher();
             ReaderTask();
         }
@@ -92,7 +97,7 @@ namespace AuroraFFXIVPlugin
                                         case Actor.Type.PC:
                                             if (playerActor.ID == ID)
                                             {
-                                                playerObj = new PlayerStruct(playerObj, source[6366]);
+                                                playerObj = new PlayerStruct(playerObj, source[Structures.ActorItem.Level+2]);
                                             }
                                             break;
                                         default:
