@@ -22,7 +22,7 @@
                         <StackPanel Orientation="Horizontal" Margin="20,10,0,0">
                             <Button x:Name="actions_button" Content="Peek Actions" HorizontalAlignment="Left"  VerticalAlignment="Top" Click="actions_button_Click"/>
                             <Button x:Name="player_button" Content="Peek Player" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" Click="player_button_Click" />
-                            <Button x:Name="reset_structure_cache" Content="Reset structure cache for new update" HorizontalAlignment="Left" Margin="20,0,0,0" VerticalAlignment="Top" Click="Reset_structure_cache_OnClick" />
+                            <Button x:Name="reset_structure_cache" Content="Reset structure cache for new update" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" Click="Reset_structure_cache_OnClick" />
                         </StackPanel>
                     </StackPanel>
                 </Grid>
