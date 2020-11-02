@@ -29,7 +29,6 @@ namespace AuroraFFXIVPlugin
 
         public FFXIVMain()
         {
-            Structures = (StructuresContainer)MemoryHandler.Instance.GetType().GetFields(BindingFlags.NonPublic | BindingFlags.Instance).First(t => t.FieldType == typeof(StructuresContainer)).GetValue(MemoryHandler.Instance);
             FileWatcher();
             ReaderTask();
         }
@@ -133,6 +132,7 @@ namespace AuroraFFXIVPlugin
         public void StartReading()
         {
             SetProcess();
+            Structures = (StructuresContainer)MemoryHandler.Instance.GetType().GetFields(BindingFlags.NonPublic | BindingFlags.Instance).First(t => t.FieldType == typeof(StructuresContainer)).GetValue(MemoryHandler.Instance);
             read = true;
         }
 

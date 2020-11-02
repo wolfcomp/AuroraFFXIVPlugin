@@ -19,7 +19,7 @@ namespace AuroraFFXIVPlugin
         public double CastingPercentage;
         public bool InCombat;
         public bool WeaponUnsheathed;
-        public byte Status;
+        public OnlineStatus Status;
         public double LevelProgression;
 
         public PlayerStruct()
@@ -374,5 +374,57 @@ namespace AuroraFFXIVPlugin
         CasterDps,
         Crafter,
         Gatherer
+    }
+
+    public enum OnlineStatus : byte
+    {
+        None,
+        Producer,
+        GameMaster,
+        SGameMaster,
+        CloverGameMaster,
+        Disconnected,
+        WaitingforFriendListApproval,
+        WaitingforLinkshellApproval,
+        WaitingforFreeCompanyApproval,
+        NotFound,
+        Offline,
+        BattleMentor,
+        Busy,
+        PvP,
+        PlayingTripleTriad,
+        ViewingCutscene,
+        UsingaChocoboPorter,
+        AwayfromKeyboard,
+        CameraMode,
+        LookingforRepairs,
+        LookingtoRepair,
+        LookingtoMeldMateria,
+        RolePlaying,
+        LookingforParty,
+        SwordforHire,
+        WaitingforDutyFinder,
+        RecruitingPartyMembers,
+        Mentor,
+        PvEMentor,
+        TradeMentor,
+        PvPMentor,
+        Returner,
+        NewAdventurer,
+        AllianceLeader,
+        AlliancePartyLeader,
+        AlliancePartyMember,
+        PartyLeader,
+        PartyMember,
+        PartyLeaderCrossWorld,
+        PartyMemberCrossWorld,
+        AnotherWorld,
+        SharingDuty,
+        SimilarDuty,
+        InDuty,
+        TrialAdventurer,
+        FreeCompany,
+        GrandCompany,
+        Online
     }
 }

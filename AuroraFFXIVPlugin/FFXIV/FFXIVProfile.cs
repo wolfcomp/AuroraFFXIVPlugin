@@ -26,12 +26,12 @@ namespace AuroraFFXIVPlugin
                               }
                           },
                     new OverrideLogicBuilder().SetLookupTable("_PrimaryColor", new OverrideLookupTableBuilder<Color>()
-                        .AddEntry(Color.FromArgb(0, 0, 0, 0), new BooleanGSINumeric { Operand1Path = "Player/Status", Operand2Path = "0" })
-                        .AddEntry(Color.FromArgb(255, 0, 0), new BooleanGSINumeric { Operand1Path = "Player/Status", Operand2Path = "12" })
-                        .AddEntry(Color.FromArgb(0, 0, 0), new BooleanGSINumeric { Operand1Path = "Player/Status", Operand2Path = "17" })
-                        .AddEntry(Color.FromArgb(255, 255, 0), new BooleanGSINumeric { Operand1Path = "Player/Status", Operand2Path = "21" })
-                        .AddEntry(Color.FromArgb(255, 135, 0), new BooleanGSINumeric { Operand1Path = "Player/Status", Operand2Path = "22" })
-                        .AddEntry(Color.FromArgb(0, 255, 41), new BooleanGSINumeric { Operand1Path = "Player/Status", Operand2Path = "23" }))),
+                        .AddEntry(Color.FromArgb(0, 0, 0, 0), new BooleanGSIEnum { StatePath = "Player/Status", EnumValue = OnlineStatus.None })
+                        .AddEntry(Color.FromArgb(255, 0, 0), new BooleanGSIEnum { StatePath = "Player/Status", EnumValue = OnlineStatus.Busy })
+                        .AddEntry(Color.FromArgb(0, 0, 0), new BooleanGSIEnum { StatePath = "Player/Status", EnumValue = OnlineStatus.AFK })
+                        .AddEntry(Color.FromArgb(255, 255, 0), new BooleanGSIEnum { StatePath = "Player/Status", EnumValue = OnlineStatus.LookingtoMeldMateria })
+                        .AddEntry(Color.FromArgb(255, 135, 0), new BooleanGSIEnum { StatePath = "Player/Status", EnumValue = OnlineStatus.RolePlaying })
+                        .AddEntry(Color.FromArgb(0, 255, 41), new BooleanGSIEnum { StatePath = "Player/Status", EnumValue = OnlineStatus.LookingforParty }))),
                 new Layer("Action Layer", new FFXIVActionLayerHandler()),
                 new Layer("Health Indicator Layer", new PercentLayerHandler
                 {
