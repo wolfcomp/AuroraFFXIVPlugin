@@ -66,7 +66,7 @@ namespace AuroraFFXIVPlugin
             GPCurrent = player.GPCurrent;
             GPMax = player.GPMax;
             JobType = player.JobType;
-            Status = status;
+            Status = (OnlineStatus)status;
             LevelProgression = player.LevelProgression;
         }
 
@@ -395,7 +395,7 @@ namespace AuroraFFXIVPlugin
         PlayingTripleTriad,
         ViewingCutscene,
         UsingaChocoboPorter,
-        AwayfromKeyboard,
+        AFK,
         CameraMode,
         LookingforRepairs,
         LookingtoRepair,
